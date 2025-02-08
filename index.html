@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cashew Quality and Price Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #3498db;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #f9f9f9;
+            transition: border-color 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #2c3e50;
+            margin-left: 10px;
+        }
+        .btn-secondary:hover {
+            background-color: #1a252f;
+        }
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #ecf0f1;
+            margin-top: 30px;
+        }
+
+        /* Add yellow background color for specific fields */
+        #netWeight, #totalWeight, #resultKOR, #pricePerTon, #totalPrice, #totalPriceInWords {
+            background-color: #fff3cd;
+        }
+    </style>
+    <script>
+        function calculateKOR() {
+            const grossWeight = parseFloat(document.getElementById('grossWeight').value) || 0;
+            const numberOfBags = parseFloat(document.getElementById('numberOfBags').value) || 0;
+            const perBagWeight = parseFloat(document.getElementById('perBagWeight').value) || 0;
+            const goodKernels = parseFloat(document.getElementById('goodKernels').value) || 0;
+            const spottedKernels = parseFloat(document.getElementById('spottedKernels').value) || 0;
+            const immatureKernels = parseFloat(document.getElementById('immatureKernels').value) || 0;
+            const rejection = parseFloat(document.getElementById('rejection').value) || 0;
+            const shellWeight = parseFloat(document.getElementById('shellWeight').value) || 0;
+
+            // Calculate Net Weight
+            const netWeight = grossWeight - (numberOfBags * perBagWeight);
+            document.getElementById('netWeight').value = netWeight.toFixed(2);
+
+            // Calculate Total Weight
+            const totalWeight = goodKernels + spottedKernels + immatureKernels + rejection + shellWeight;
+            document.getElementById('totalWeight').value = totalWeight;
+
+            // Calculate KOR
+            const KOR = ((goodKernels + (spottedKernels + immatureKernels) / 2) * 80) / 453.6;
+            document.getElementById('resultKOR').value = KOR.toFixed(2);
+        }
+
+        function calculatePrice() {
+            const pricePerKg = parseFloat(document.getElementById('pricePerKg').value) || 0;
+            const manualNetWeight = parseFloat(document.getElementById('manualNetWeight').value) || 0;
+            const currency = document.getElementById('priceCurrency').value;
+
+            // Calculate Price Per Ton
+            const pricePerTon = pricePerKg * 1000;
+            document.getElementById('pricePerTon').value = pricePerTon.toFixed(2);
+
+            // Calculate Total Price
+            const totalPrice = pricePerKg * manualNetWeight;
+            document.getElementById('totalPrice').value = totalPrice.toFixed(2);
+
+            // Convert Total Price to Words
+            document.getElementById('totalPriceInWords').value = convertNumberToWords(totalPrice) + " " + currency + " Only";
+        }
+
+        function convertNumberToWords(num) {
+            const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
+            const teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+            const tens = ["", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+            num = Math.floor(num); // Ignore the decimal part
+
+            if (num === 0) return "Zero";
+
+            let words = "";
+
+            if (Math.floor(num / 1000) > 0) {
+                words += convertNumberToWords(Math.floor(num / 1000)) + " Thousand ";
+                num %= 1000;
+            }
+
+            if (Math.floor(num / 100) > 0) {
+                words += units[Math.floor(num / 100)] + " Hundred ";
+                num %= 100;
+            }
+
+            if (num > 0) {
+                if (num < 10) {
+                    words += units[num];
+                } else if (num < 20) {
+                    words += teens[num - 10];
+                } else {
+                    words += tens[Math.floor(num / 10)] + " " + units[num % 10];
+                }
+            }
+
+            return words.trim();
+        }
+
+        function sendWhatsApp() {
+            let message = ""; // Removed the heading "Cashew Quality Report"
+            const fields = ["date", "companyName", "waybillNumber", "contractNumber", "billNumber", "supplierName", "containerNumber", "sealNumber", "truckNumber", "origin", 
+                            "grossWeight", "numberOfBags", "bagType", "perBagWeight", "netWeight", "cutting", "nutCount", "moisture",
+                            "goodKernels", "spottedKernels", "immatureKernels", "rejection", "shellWeight", "remark"];
+
+            fields.forEach(id => {
+                let value = document.getElementById(id).value;
+                if (value.trim() !== "" && (id !== "netWeight" || parseFloat(value) !== 0)) {
+                    let label = document.querySelector(`label[for=${id}]`).innerText;
+                    message += `*${label}:* ${value}\n`;
+                }
+            });
+
+            const totalWeight = parseFloat(document.getElementById('totalWeight').value) || 0;
+            const resultKOR = parseFloat(document.getElementById('resultKOR').value) || 0;
+
+            // Include Total Weight and KOR Result only if they are non-zero
+            if (totalWeight > 0) {
+                message += `*Total Weight:* ${totalWeight} grams\n`;
+            }
+            if (resultKOR > 0) {
+                message += `*Result (KOR):* ${resultKOR} lbs\n`;
+            }
+
+            let whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, "_blank");
+        }
+
+        function calculateClaim() {
+            // Input values
+            const currency = document.getElementById('currency').value;
+            const exchangeRate = parseFloat(document.getElementById('exchangeRate').value);
+            const contractQuality = parseFloat(document.getElementById('contractQuality').value);
+            const contractMetricTon = parseFloat(document.getElementById('contractMetricTon').value);
+            const perTonPrice = parseFloat(document.getElementById('perTonPrice').value);
+            const actualQuality = parseFloat(document.getElementById('actualQuality').value);
+            const actualMetricTon = parseFloat(document.getElementById('actualMetricTon').value);
+            const advancePercentage = parseFloat(document.getElementById('advancePercentage').value);
+
+            // Step 1: Calculate the Penalty Rate per lb
+            const penaltyRate = perTonPrice / contractQuality;
+
+            // Step 2: Calculate the Quality Difference (lbs)
+            const qualityDifference = contractQuality - actualQuality;
+
+            // Step 3: Apply Penalty Rules
+            let claimPerTon = 0;
+            if (qualityDifference > 2) {
+                // Double penalty for pounds beyond 2 lbs
+                claimPerTon = (2 * penaltyRate) + ((qualityDifference - 2) * penaltyRate * 2);
+            } else if (qualityDifference > 0) {
+                // Single penalty
+                claimPerTon = qualityDifference * penaltyRate;
+            }
+
+            // Step 4: Calculate the Total Claim Amount for Metric Ton
+            const claimMetricTon = claimPerTon * actualMetricTon; // Updated to depend on actual metric ton weight
+
+            // Step 5: Calculate Total Prices
+            const totalContractPrice = perTonPrice * contractMetricTon;
+            const totalLandedPrice = perTonPrice * actualMetricTon;
+
+            // Step 6: Calculate Advance Amount
+            const advanceAmount = (advancePercentage / 100) * totalContractPrice;
+
+            // Step 7: Calculate Payable Amount After Claim
+            const payableAmount = totalLandedPrice - claimMetricTon - advanceAmount;
+
+            // Step 8: Convert Payable Amount to Local Currency
+            const payableLocal = payableAmount * exchangeRate;
+
+            // Display results
+            document.getElementById('perTonPriceResult').textContent = perTonPrice.toFixed(2);
+            document.getElementById('totalContractPrice').textContent = totalContractPrice.toFixed(2);
+            document.getElementById('totalLandedPrice').textContent = totalLandedPrice.toFixed(2);
+            document.getElementById('claimPerTon').textContent = claimPerTon.toFixed(2);
+            document.getElementById('claimMetricTon').textContent = claimMetricTon.toFixed(2);
+            document.getElementById('advanceAmount').textContent = advanceAmount.toFixed(2);
+            document.getElementById('payableAmount').textContent = payableAmount.toFixed(2);
+            document.getElementById('payableLocal').textContent = `${payableLocal.toFixed(2)} ${currency}`;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Cashew Quality and Price Calculator</h1>
+
+        <!-- Cashew Quality Calculator Section -->
+        <h2>Cashew Quality Calculator</h2>
+        <label for="date">Date</label>
+        <input type="date" id="date">
+
+        <label for="companyName">Company Name</label>
+        <input type="text" id="companyName">
+        
+        <label for="waybillNumber">Waybill Number</label>
+        <input type="text" id="waybillNumber">
+        
+        <label for="contractNumber">Contract Number</label>
+        <input type="text" id="contractNumber">
+
+        <!-- Added Bill Number Field -->
+        <label for="billNumber">Bill Number</label>
+        <input type="text" id="billNumber">
+
+        <label for="supplierName">Supplier Name</label>
+        <input type="text" id="supplierName">
+
+        <label for="containerNumber">Container Number</label>
+        <input type="text" id="containerNumber">
+
+        <label for="sealNumber">Seal Number</label>
+        <input type="text" id="sealNumber">
+
+        <label for="truckNumber">Truck Number</label>
+        <input type="text" id="truckNumber">
+
+        <label for="origin">Origin</label>
+        <input type="text" id="origin">
+
+        <label for="grossWeight">Gross Weight (kg)</label>
+        <input type="number" id="grossWeight" step="0.01">
+
+        <label for="numberOfBags">Number of Bags</label>
+        <input type="number" id="numberOfBags" step="1">
+
+        <label for="bagType">Bag Type</label>
+        <select id="bagType">
+            <option value="">Select Bag Type</option>
+            <option value="Jute">Jute</option>
+            <option value="Poly">Poly</option>
+        </select>
+
+        <label for="perBagWeight">Per Bag Weight (kg)</label>
+        <input type="number" id="perBagWeight" step="0.01">
+
+        <label for="netWeight">Net Weight (kg)</label>
+        <input type="number" id="netWeight" readonly>
+
+        <label for="cutting">Cutting</label>
+        <select id="cutting">
+            <option value="">Select Cutting</option>
+            <option value="First">First</option>
+            <option value="Second">Second</option>
+            <option value="Third">Third</option>
+        </select>
+
+        <label for="nutCount">Nut Count</label>
+        <input type="number" id="nutCount">
+
+        <label for="moisture">Moisture (%)</label>
+        <input type="number" id="moisture" step="0.01">
+
+        <label for="goodKernels">Good Kernels (grams)</label>
+        <input type="number" id="goodKernels" step="0.01">
+
+        <label for="spottedKernels">Spotted Kernels (grams)</label>
+        <input type="number" id="spottedKernels" step="0.01">
+
+        <label for="immatureKernels">Immature Kernels (grams)</label>
+        <input type="number" id="immatureKernels" step="0.01">
+
+        <label for="rejection">Rejection (grams)</label>
+        <input type="number" id="rejection" step="0.01">
+
+        <label for="shellWeight">Shell Weight (grams)</label>
+        <input type="number" id="shellWeight" step="0.01">
+
+        <label for="totalWeight">Total Weight (grams)</label>
+        <input type="number" id="totalWeight" step="0.01" readonly>
+
+        <label for="resultKOR">Result (KOR in lbs)</label>
+        <input type="number" id="resultKOR" readonly>
+
+        <label for="remark">Remark</label>
+        <textarea id="remark"></textarea>
+
+        <button class="btn" onclick="calculateKOR()">Calculate KOR</button>
+        <button class="btn btn-secondary" onclick="sendWhatsApp()">Send via WhatsApp</button>
+
+        <hr>
+
+        <!-- Price Calculator Section -->
+        <h2>Price Calculator</h2>
+        <label for="priceCurrency">Currency</label>
+        <select id="priceCurrency">
+            <option value="USD">US Dollar (USD)</option>
+            <option value="INR">Indian Rupee (INR)</option>
+            <option value="VND">Vietnamese Dong (VND)</option>
+            <option value="GHS">Ghanaian Cedi (GHS)</option>
+            <option value="XOF">West African CFA Franc (XOF)</option>
+            <option value="NGN">Nigerian Naira (NGN)</option>
+            <option value="TZS">Tanzanian Shilling (TZS)</option>
+            <option value="GNF">Guinean Franc (GNF)</option>
+            <option value="GMD">Gambian Dalasi (GMD)</option>
+            <option value="XAF">Central African CFA Franc (XAF)</option>
+            <option value="MZN">Mozambican Metical (MZN)</option>
+            <option value="MGA">Malagasy Ariary (MGA)</option>
+            <option value="IDR">Indonesian Rupiah (IDR)</option>
+            <option value="KHR">Cambodian Riel (KHR)</option>
+        </select>
+
+        <label for="pricePerKg">Price Per Kilogram</label>
+        <input type="number" id="pricePerKg" step="0.01">
+
+        <label for="manualNetWeight">Net Weight (kg)</label>
+        <input type="number" id="manualNetWeight" step="0.01">
+
+        <label for="pricePerTon">Price Per Ton</label>
+        <input type="number" id="pricePerTon" readonly>
+
+        <label for="totalPrice">Total Price</label>
+        <input type="number" id="totalPrice" readonly>
+
+        <label for="totalPriceInWords">Total Price in Words</label>
+        <input type="text" id="totalPriceInWords" readonly>
+
+        <button class="btn" onclick="calculatePrice()">Calculate Price</button>
+
+        <hr>
+
+        <!-- Claim Calculator Section -->
+        <h2>Claim Calculator</h2>
+        <label for="currency">Select Local Currency:</label>
+        <select id="currency">
+            <option value="INR">INR</option>
+            <option value="VND">VND</option>
+        </select>
+
+        <label for="exchangeRate">Enter Current Exchange Rate (1 USD = ?):</label>
+        <input type="number" id="exchangeRate" step="0.01" placeholder="Exchange Rate">
+
+        <label for="contractQuality">Contract Quality (lbs):</label>
+        <input type="number" id="contractQuality" step="0.01" placeholder="Contract Quality in lbs">
+        <label for="contractMetricTon">Contract Quantity (Metric Ton):</label>
+        <input type="number" id="contractMetricTon" step="0.01" placeholder="Contract Quantity in Metric Ton">
+
+        <label for="perTonPrice">Per Ton Price (USD):</label>
+        <input type="number" id="perTonPrice" step="0.01" placeholder="Per Ton Price in USD">
+
+        <label for="actualQuality">Actual Quality (lbs):</label>
+        <input type="number" id="actualQuality" step="0.01" placeholder="Actual Quality in lbs">
+
+        <label for="actualMetricTon">Actual Metric Ton:</label>
+        <input type="number" id="actualMetricTon" step="0.01" placeholder="Actual Metric Ton">
+
+        <label for="advancePercentage">Advance Amount (%):</label>
+        <input type="number" id="advancePercentage" step="0.01" placeholder="Advance Percentage">
+
+        <button class="btn" onclick="calculateClaim()">Calculate Claim</button>
+
+        <div class="result">
+            <h2>Results</h2>
+            <p><strong>Per Ton Price in USD:</strong> <span id="perTonPriceResult"></span></p>
+            <p><strong>Total Price in Contract (USD):</strong> <span id="totalContractPrice"></span></p>
+            <p><strong>Total Price in Landed Weight (USD):</strong> <span id="totalLandedPrice"></span></p>
+            <p><strong>Claim Amount per Ton (USD):</strong> <span id="claimPerTon"></span></p>
+            <p><strong>Claim Amount in Total Metric Ton (USD):</strong> <span id="claimMetricTon"></span></p>
+            <p><strong>Advance Amount (USD):</strong> <span id="advanceAmount"></span></p>
+            <p><strong>Payable Amount After Claim (USD):</strong> <span id="payableAmount"></span></p>
+            <p><strong>Payable Amount in Local Currency:</strong> <span id="payableLocal"></span></p>
+        </div>
+    </div>
+    <div class="footer">
+        <p>Developed by Vishnu Ajayakumar</p>
+    </div>
+</body>
+</html>
